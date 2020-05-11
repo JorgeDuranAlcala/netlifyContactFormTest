@@ -1,92 +1,108 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Contact form test</title>
     <script src="https://unpkg.com/react@16/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
-</head>
-<body>
-
+  </head>
+  <body>
     <!-- A litle bit help for netlify -->
 
     <form name="contact" netlify netlify-honeypot="bot-field" hidden>
-        <input type="text" name="name" />
-        <input type="email" name="email" />
-        <textarea name="message"></textarea>
-      </form>
+      <input type="text" name="name" />
+      <input type="email" name="email" />
+      <textarea name="message"></textarea>
+    </form>
 
     <div id="root"></div>
     <script type="text/babel">
+      const styles = {
+        form: {
+          position: "absolute",
+          width: "50%",
+          left: "25%",
+          display: "flex",
+          justifyContent: "center",
+          background: "red",
+          flexDirection: "column",
+        },
+      };
 
-        const styles = {
-            form: {
-                position: 'absolute',
-                width: '50%',
-                left: '25%',
-                display: 'flex',
-                justifyContent: 'center',
-                background: 'red',
-                flexDirection: 'column'
-            }
+      const encodeData = (data) => {
+        return Object.keys(data)
+          .map(
+            (key) =>
+              `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`
+          )
+          .join("&");
+      };
+
+      class ContactForm extends React.Component {
+        constructor(props) {
+          super(props);
+
+          this.state = {
+            name: "",
+            email: "",
+            message: "",
+          };
         }
 
+        onSubmit = (e) => {
+          fetch("/", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: encodeData({ "form-name": "contact", ...this.state }),
+          })
+            .then(() => alert("Success!"))
+            .catch((error) => alert(error));
 
-        const encodeData = data => {
-            return Object.keys(data)
-            .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`)
-            .join("&");
+          e.preventDefault();
+        };
+
+        onChange = (e) => {
+          const { name, value } = e.target;
+
+          this.setState({ [name]: value });
+        };
+        render() {
+          return (
+            <form
+              action="post"
+              name="contact"
+              style={styles.form}
+              onSubmit={this.onSubmit}
+            >
+              <input type="hidden" name="form-name" value="contact" />
+              <input
+                type="text"
+                onChange={this.onChange}
+                name="name"
+                placeholder="Enter a Name"
+              />
+              <input
+                type="text"
+                onChange={this.onChange}
+                name="email"
+                placeholder="Enter a Email"
+              />
+              <textarea
+                name="message"
+                onChange={this.onChange}
+                id=""
+                cols="30"
+                rows="10"
+              ></textarea>
+              <button type="submit">Send</button>
+            </form>
+          );
         }
+      }
 
-        
-        class ContactForm extends React.Component {
-
-            constructor(props) {
-                super(props)
-
-                this.state = {
-                    name: '',
-                    email: '',
-                    message: ''
-                }
-            }
-
-            onSubmit = e => {
-                e.preventDefault();
-                fetch({
-                    url: '/',
-                    method: 'post',
-                    body: encode({ "form-name": "contact", ...this.state }),
-                    headers: { "Content-type": "application/x-www-form-urlencoded" }
-                })
-                .then(message=>console.log(message))
-                .catch(console.log)
-            }
-
-            onChange = e => {
-
-                const { name, value } = e.target;
-
-                this.setState({ [name]: value })
-
-            }
-            render() {
-                return (
-                    <form action="post" name="contact" style={styles.form} onSubmit={this.onSubmit}>
-                        <input type="hidden" name="form-name" value="contact" />
-                        <input type="text" onChange={this.onChange} name="name" placeholder="Enter a Name" />
-                        <input type="text" onChange={this.onChange} name="email" placeholder="Enter a Email" />
-                        <textarea name="message" onChange={this.onChange} id="" cols="30" rows="10"></textarea>
-                        <button type="submit">Send</button>
-                    </form>
-                )
-            }
-        }
-    
-        ReactDOM.render(<ContactForm/> , document.getElementById('root'))
-
+      ReactDOM.render(<ContactForm />, document.getElementById("root"));
     </script>
-</body>
+  </body>
 </html>
